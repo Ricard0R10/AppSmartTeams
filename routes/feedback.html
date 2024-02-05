@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Feedback</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <style>
+
+        .hidden {
+            display: none;
+        }
+        /* Reset básico para garantir consistência entre navegadores */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', sans-serif;
+            background-color: #f0f0f0;
+            line-height: 1.6;
+            color: #333;
+            padding: 20px;
+        }
+        
+        /* Efeito de fundo dinâmico */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(-45deg, #7f7fd5, #86a8e7, #91eae4, #ffafbd);
+            background-size: 400% 400%;
+            z-index: -1;
+            animation: gradientBG 15s ease infinite;
+        }
+        
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            color: #333;
+        }
+        
+        form {
+            display: grid;
+            grid-gap: 20px;
+            padding: 20px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            border-color: #7f7fd5;
+            outline: none;
+        }
+        
+        label {
+            font-size: 1.2em;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        /* Botão de envio personalizado */
+        button, input[type="submit"] {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover, input[type="submit"]:hover {
+            background: #45a049;
+        }
+        
+        /* Estilo para a responsividade */
+        @media (max-width: 600px) {
+            form {
+                grid-template-columns: 1fr;
+            }
+        }
+        /* Animações Suaves e Efeitos de Foco */
+
+        /* Efeito de foco nos inputs e selects */
+        input:focus, select:focus {
+            border-color: #4caf50;
+            box-shadow: 0 0 8px 0 rgba(76, 175, 80, 0.4);
+        }
+
+        /* Efeito de passar o mouse sobre os botões */
+        button:hover, input[type="submit"]:hover {
+            background-color: #66bb6a;
+            box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        /* Animações para Labels */
+        label {
+            transition: all 0.3s ease;
+        }
+
+        label:hover {
+            color: #4caf50;
+            transform: scale(1.05);
+        }
+
+        /* Animação no carregamento da página */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .container {
+            animation: fadeIn 1s ease-out;
+        }
+
+        /* Estilos para Links (se aplicável) */
+        a {
+            color: #4caf50;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        a:hover {
+            color: #66bb6a;
+        }
+
+        /* Efeito de campo de texto ao digitar */
+        input[type="text"]:not(:placeholder-shown) {
+            background-color: #e8f5e9;
+        }
+
+        /* Personalizações para Checkbox e Radio Buttons */
+        input[type="checkbox"], input[type="radio"] {
+            accent-color: #4caf50;
+        }
+
+        /* Estilos para mensagens de erro ou validação (se aplicável) */
+        .error-message {
+            color: red;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .success-message {
+            color: green;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        #botoesMarcacaoRapida button {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: background-color 0.3s;
+        }
+
+        #botoesMarcacaoRapida button:hover {
+            background: #45a049;
+        }
+        #mensagemPopUp, #popupMarcarVisita {
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+        #popupMarcarVisita {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+
+    </style>
+
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const operadoraSelect = document.getElementById('operadora');
+    const tipoServicoSelect = document.getElementById('tipoServico');
+    const dadosMoveisSelect = document.getElementById('dadosMoveis');
+    const fidelizadoSelect = document.getElementById('fidelizado');
+    const cinemaFrequenciaSelect = document.getElementById('cinemaFrequencia');
+    const fornecedorEnergiaSelect = document.getElementById('fornecedorEnergia');
+    const solucaoSegurancaSelect = document.getElementById('solucaoSeguranca');
+    const fidelizadoSegurancaSelect = document.getElementById('fidelizadoSeg');
+
+    function hideAllSections() {
+        document.querySelectorAll('.hidden').forEach(section => section.classList.add('hidden'));
+    }
+
+    function showSection(sectionId) {
+        document.getElementById(sectionId).classList.remove('hidden');
+    }
+
+    function handleOperadoraChange() {
+        hideAllSections();
+        const operadora = operadoraSelect.value;
+        if (operadora === 'Nos') {
+            showSection('perguntaSeguranca');
+        } else {
+            showSection('sectionTipoServico');
+        }
+    }
+
+
+    function handleTipoServicoChange() {
+        hideAllSections();
+        showSection('sectionTipoServico');
+        const tipoServico = tipoServicoSelect.value;
+        if (tipoServico === 'TvNetVoz' || tipoServico === 'TvNetVozMovel') {
+            showSection('dadosMoveis');
+        }
+    }
+
+    function handleDadosMoveisChange() {
+        showSection('valorTelemovelExtra');
+        showSection('velocidadeInternet');
+        showSection('valorMensalidade');
+        showSection('clienteFidelizado');
+    }
+
+    function handleFidelizadoChange() {
+        const fidelizado = fidelizadoSelect.value;
+        if (fidelizado === 'sim') {
+            showSection('detalhesFidelizacao');
+        } else {
+            showSection('motivoMudancaOperadora');
+            showSection('canaisStreaming');
+            showSection('idaCinema');
+            showSection('fornecedorEnergia');
+        }
+    }
+
+    function handleCinemaFrequenciaChange() {
+        const frequencia = cinemaFrequenciaSelect.value;
+        if (frequencia !== 'nao') {
+            showSection('fornecedorEnergia');
+        } else {
+            showSection('opcoesSemServico');
+        }
+    }
+    function handleFornecedorEnergiaChange() {
+        showSection('perguntaSeguranca');
+    }
+
+    function handleSolucaoSegurancaChange() {
+        const solucao = solucaoSegurancaSelect.value;
+        if (solucao === 'Nao') {
+            showSection('pensouSeguranca');
+            showSection('ligacaoSmartphone');
+            showSection('motivoSeguranca');
+        } else {
+            showSection('valorMensalidadeSeguranca');
+            showSection('clienteFidelizadoSeguranca');
+        }
+    }
+
+    function handleFidelizadoSegurancaChange() {
+        const fidelizado = fidelizadoSegurancaSelect.value;
+        if (fidelizado === 'sim') {
+            showSection('detalhesFidelizacaoSeguranca');
+        }
+    }
+
+    // Adiciona event listeners
+    operadoraSelect.addEventListener('change', handleOperadoraChange);
+    tipoServicoSelect.addEventListener('change', handleTipoServicoChange);
+    dadosMoveisSelect.addEventListener('change', handleDadosMoveisChange);
+    fidelizadoSelect.addEventListener('change', handleFidelizadoChange);
+    cinemaFrequenciaSelect.addEventListener('change', handleCinemaFrequenciaChange);
+    fornecedorEnergiaSelect.addEventListener('change', handleFornecedorEnergiaChange);
+    solucaoSegurancaSelect.addEventListener('change', handleSolucaoSegurancaChange);
+    fidelizadoSegurancaSelect.addEventListener('change', handleFidelizadoSegurancaChange);
+
+
+    // Inicialização
+    hideAllSections();
+});
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('celula').addEventListener('change', function() {
+            const celula = this.value;
+            const moradaSelect = document.getElementById('morada');
+            moradaSelect.innerHTML = '<option value="">Selecione uma Morada</option>';
+
+            if (!celula) return;
+
+            fetch(`/get_moradas?celula=${celula}`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(m => {
+                        const option = document.createElement('option');
+                        option.value = m.id;
+                        option.textContent = `${m.rua}, ${m.numero_porta}`;
+                        moradaSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Erro ao carregar moradas:', error));
+        });
+    });
+</script>
+
+</head>
+<body>
+
+
+    <!-- Seleção de Célula -->
+<label for="celula">Escolha uma Célula:</label>
+<select id="celula" name="celula" onchange="loadMoradas()">
+    <option value="">Selecione uma Célula</option>
+    <!-- Opções de células serão preenchidas aqui -->
+</select><br><br>
+
+<!-- Área para exibir Moradas -->
+<label for="morada">Morada:</label>
+<select id="morada" name="morada">
+    <option value="">Selecione uma Morada</option>
+    <!-- Moradas serão preenchidas dinamicamente aqui -->
+</select><br><br>
+
+    <h1>Formulário de Feedback</h1>
+    <form method="POST">
+        <label for="nome_cliente">Nome do Cliente:</label>
+        <input type="text" id="nome_cliente" name="nome_cliente"><br><br>
+        <!-- Pergunta sobre a operadora -->
+<label for="operadora">Qual a sua operadora de telecomunicações?</label>
+<select id="operadora" name="operadora">
+    <option value="">Selecione</option>
+    <option value="Meo">Meo</option>
+    <option value="Nos">Nos</option>
+    <option value="Vodafone">Vodafone</option>
+    <option value="Outra">Outra</option>
+</select><br><br>
+<!-- Pergunta sobre o tipo de serviço -->
+<div id="sectionTipoServico" class="hidden">
+    <label for="tipoServico">Tipo de serviço:</label>
+    <select id="tipoServico" name="tipoServico">
+        <option value="">Selecione</option>
+        <option value="TvNetVoz">TV + Net + Voz</option>
+        <option value="TvNetVozMovel">TV + Net + Voz + Móvel</option>
+        <option value="Outro">Outro</option>
+    </select><br><br>
+</div>
+<!-- Outras perguntas conforme o tipo de serviço -->
+<div id="detalhesTvNetVoz" class="hidden">
+    <label for="telemovelExtra">Tem telemóveis e quantos telemóveis extra fatura ?</label>
+    <input type="number" id="telemovelExtra" name="telemovelExtra"><br><br>
+</div>
+<div id="detalhesTvNetVozMovel" class="hidden">
+    <label for="telemovelFatura">Quantos telemóveis em fatura ?</label>
+    <select id="telemovelFatura" name="telemovelFatura">
+        <option value="">Selecione</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="mais4">+ 4</option>
+    </select><br><br>
+</div>
+<!-- Pergunta sobre dados móveis incluídos em cada cartão -->
+<div id="dadosMoveis" class="hidden">
+    <label for="dadosMoveis">Quantos dados móveis incluídos em cada cartão?</label>
+    <select id="dadosMoveis" name="dadosMoveis">
+        <option value="">Selecione</option>
+        <option value="Ate5Gb">Até 5 Gb</option>
+        <option value="Ate10Gb">Até 10 Gb</option>
+        <option value="11a20Gb">11 a 20 Gb</option>
+        <option value="20a50Gb">20 a 50 Gb</option>
+        <option value="Mais50Gb">+ 50 Gb</option>
+        <option value="Ilimitado">Ilimitado</option>
+    </select><br><br>
+</div>
+        <!-- Pergunta sobre o valor mensal dos telemóveis extra fatura -->
+        <div id="valorTelemovelExtra" class="hidden">
+            <label for="valorMensalExtra">Qual o valor mensal dos telemóveis extra fatura?</label>
+            <input type="text" id="valorMensalExtra" name="valorMensalExtra"><br><br>
+        </div>
+        
+        <!-- Pergunta sobre a velocidade da internet contratada -->
+        <div id="velocidadeInternet" class="hidden">
+            <label for="velocidadeNet">Qual a velocidade de net contratada?</label>
+            <select id="velocidadeNet" name="velocidadeNet">
+                <option value="">Selecione</option>
+                <option value="30mb">30 mb</option>
+                <option value="100mb">100 mb</option>
+                <option value="200mb">200 mb</option>
+                <option value="500mb">500 mb</option>
+                <option value="1gb">1 GB</option>
+                <option value="outra">Outra</option>
+            </select><br><br>
+        </div>
+        
+        <!-- Pergunta sobre o valor da mensalidade -->
+        <div id="valorMensalidade" class="hidden">
+            <label for="valorMensalidade">Qual o valor da mensalidade?</label>
+            <select id="valorMensalidade" name="valorMensalidade">
+                <option value="">Selecione</option>
+                <option value="inf35">Inferior a 35 €</option>
+                <option value="35a39">Entre 35 a 39 €</option>
+                <option value="39a46">Entre 39 e 46 €</option>
+                <option value="46a52">Entre 46 e 52 €</option>
+                <option value="52a58">Entre 52 e 58 €</option>
+                <option value="58a65">Entre 58 e 65 €</option>
+                <option value="65a70">Entre 65 e 70 €</option>
+                <option value="70a75">Entre 70 e 75 €</option>
+                <option value="75a80">Entre 75 e 80 €</option>
+                <option value="sup80">Superior a 80 €</option>
+            </select><br><br>
+        </div>
+        
+        <!-- Pergunta sobre fidelização do cliente -->
+        <div id="clienteFidelizado" class="hidden">
+            <label for="fidelizado">Cliente fidelizado?</label>
+            <select id="fidelizado" name="fidelizado">
+                <option value="">Selecione</option>
+                <option value="sim">Sim</option>
+                <option value="nao">Não</option>
+            </select><br><br>
+            <div id="detalhesFidelizacao" class="hidden">
+                <label for="dataTermino">Data de término da fidelização:</label>
+                <input type="date" id="dataTermino" name="dataTermino"><br><br>
+        
+                <label for="valorIncumprimento">Valor de incumprimento:</label>
+                <input type="text" id="valorIncumprimento" name="valorIncumprimento"><br><br>
+            </div>
+        </div>
+    <!-- Pergunta sobre mudança de operadora -->
+    <div id="motivoMudancaOperadora" class="hidden">
+        <label for="motivoMudanca">O que o faria mudar de operadora de telecomunicações?</label>
+        <select id="motivoMudanca" name="motivoMudanca">
+            <option value="">Selecione</option>
+            <option value="preco">Melhor preço</option>
+            <option value="servicos">Melhores serviços</option>
+            <option value="velocidadeNet">Melhor velocidade de internet</option>
+            <option value="dadosMoveis">Mais dados móveis</option>
+            <option value="sinalWifi">Melhor sinal Wi-Fi</option>
+            <option value="conteudosTv">Mais conteúdos de TV</option>
+            <option value="outra">Outra</option>
+        </select><br><br>
+        <input type="text" id="outraMotivacao" name="outraMotivacao" placeholder="Se 'Outra', especifique"><br><br>
+    </div>
+    <!-- Pergunta sobre canais premium ou streaming -->
+    <div id="canaisStreaming" class="hidden">
+        <label for="canaisPremium">Tem canais premium ou streaming?</label>
+        <select id="canaisPremium" name="canaisPremium">
+            <option value="">Selecione</option>
+            <option value="nao">Não</option>
+            <option value="desporto">Canais de desporto</option>
+            <option value="filmesSeries">Canais de filmes e séries</option>
+            <option value="tvCine">TV Cine</option>
+            <option value="outro">Outro</option>
+        </select><br><br>
+    </div>
+    <!-- Pergunta sobre ida ao cinema -->
+    <div id="idaCinema" class="hidden">
+        <label for="cinemaFrequencia">Costuma ir ao cinema?</label>
+        <select id="cinemaFrequencia" name="cinemaFrequencia">
+            <option value="">Selecione</option>
+            <option value="nao">Não</option>
+            <option value="1a2Mes">1 a 2 vezes por mês</option>
+            <option value="3a4Mes">3 a 4 vezes por mês</option>
+            <option value="mais4Mes">Mais de 4 vezes por mês</option>
+        </select><br><br>
+    </div>
+    <!-- Pergunta sobre o fornecedor de energia -->
+    <div id="fornecedorEnergia" class="hidden">
+        <label for="fornecedorEnergia">Qual o seu fornecedor de energia?</label>
+        <select id="fornecedorEnergia" name="fornecedorEnergia">
+            <option value="">Selecione</option>
+            <option value="edpComercial">EDP Comercial</option>
+            <option value="outro">Outro</option>
+        </select><br><br>
+        <input type="text" id="qualFornecedorEnergia" name="qualFornecedorEnergia" placeholder="Se 'Outro', especifique"><br></br>
+    </div>
+        <!-- Pergunta sobre opções se não tem serviço -->
+        <div id="opcoesSemServico" class="hidden">
+            <label for="opcaoSemServico">O que procuraria ter no seu serviço?</label>
+            <select id="opcaoSemServico" name="opcaoSemServico">
+                <option value="">Selecione</option>
+                <option value="melhorPreco">Melhor preço</option>
+                <option value="melhoresServicos">Melhores serviços</option>
+                <option value="melhorVelocidadeNet">Melhor velocidade de internet</option>
+                <option value="maisDadosMoveis">Mais dados móveis</option>
+                <option value="bomSinalWifi">Bom sinal Wi-Fi</option>
+                <option value="maisConteudosTv">Mais conteúdos de TV</option>
+                <option value="outra">Outra</option>
+            </select><br><br>
+            <input type="text" id="outraOpcaoSemServico" name="outraOpcaoSemServico" placeholder="Se 'Outra', especifique"><br>
+        </div>
+        
+    <div id="perguntaSeguranca" class="hidden">
+        <label for="questaoSeguranca">Tem alguma solução profissional de segurança?</label>
+        <select id="solucaoSeguranca" name="solucaoSeguranca">
+            <option value="">Selecione</option>
+            <option value="Securitas">Securitas Direct</option>
+            <option value="Prosegur">Prossegur</option>
+            <option value="Outra">Outra ( Sem Mensalidade )</option>
+            <option value="Nao">Não</option>
+        </select><br><br>
+    
+        <div id="valorMensalidadeSeguranca" class="hidden">
+            <label for="valorMensalSeg">Qual o valor da mensalidade?</label>
+            <select id="valorMensalSeg" name="valorMensalSeg">
+                <option value="">Selecione</option>
+                <option value="Ate30">Até 30 €</option>
+                <option value="30a40">Entre 30 a 40 €</option>
+                <option value="41a50">Entre 41 a 50 €</option>
+                <option value="Mais50">Mais de 50 €</option>
+            </select><br><br>
+        </div>
+    
+        <div id="clienteFidelizadoSeguranca" class="hidden">
+            <label for="fidelizadoSeg">Cliente fidelizado?</label>
+            <select id="fidelizadoSeg" name="fidelizadoSeg">
+                <option value="">Selecione</option>
+                <option value="sim">Sim</option>
+                <option value="nao">Não</option>
+            </select><br><br>
+        
+            <div id="detalhesFidelizacaoSeguranca" class="hidden">
+                <label for="dataTerminoSeg">Data de término da fidelização:</label>
+                <input type="date" id="dataTerminoSeg" name="dataTerminoSeg"><br><br>
+            </div>
+        </div>
+    
+        <label for="pensouSeguranca">Já pensou em colocar alguma solução de segurança?</label>
+        <select id="pensouSeguranca" name="pensouSeguranca">
+            <option value="">Selecione</option>
+            <option value="Sim">Sim</option>
+            <option value="Nao">Não</option>
+        </select><br><br>
+    
+        <label for="ligacaoSmartphone">Gostaria de ter uma ligação permanente à sua residência através do seu smartphone?</label>
+        <select id="ligacaoSmartphone" name="ligacaoSmartphone">
+            <option value="">Selecione</option>
+            <option value="Sim">Sim</option>
+            <option value="Nao">Não</option>
+        </select><br><br>
+        
+        <label for="motivoSeguranca">O que o levaria a colocar uma solução profissional de segurança?</label>
+        <select id="motivoSeguranca" name="motivoSeguranca">
+            <option value="">Selecione</option>
+            <option value="QualidadePreco">Melhor solução qualidade/preço</option>
+            <option value="SemInvestimento">Não ter investimento inicial</option>
+            <option value="SegurancaFamilia">Segurança da família ou da residência</option>
+            <option value="MonitorizarEntradas">Monitorizar quem entra e sai e seus horários</option>
+            <option value="AnimaisEstimacao">Monitorizar os animais de estimação durante o dia</option>
+            <option value="AtividadesCasa">Saber o que as pessoas com acesso à sua habitação fazem</option>
+        </select><br><br>
+        
+        <input type="text" id="contato" name="contato" placeholder="Contato (Opcional)"><br><br>
+        <input type="email" id="email" name="email" placeholder="Email (Opcional)"><br><br>
+        <label for="autorizaValidacao">Autoriza para efeitos de validação ser contatado ?</label>
+        <input type="checkbox" id="autorizaValidacao" name="autorizaValidacao" required><br><br>
+        <label for="autorizaComercial">Autoriza para efeitos comerciais ?</label>
+        <input type="checkbox" id="autorizaComercial" name="autorizaComercial" required><br><br>
+    </div>
+    <input type="submit" value="Enviar Feedback">
+</form>
+        
+    
+</body>
+</html>

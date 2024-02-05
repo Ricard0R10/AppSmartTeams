@@ -1,0 +1,23 @@
+<!-- admin.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Área de Administração</title>
+</head>
+<body>
+    <h1>Administração</h1>
+    <h2>Territórios</h2>
+    <ul>
+        {% for territorio in territorios %}
+        <li>{{ territorio.rua }}, {{ territorio.localidade }}</li>
+        {% endfor %}
+    </ul>
+    <h2>Upload de Territórios</h2>
+    <form method="POST" action="/admin/upload" enctype="multipart/form-data"> <!-- Use a rota correta para upload -->
+        <input type="file" name="file">
+        <input type="submit" value="Upload">
+    </form>
+    
+</form>
+</body>
+</html>
