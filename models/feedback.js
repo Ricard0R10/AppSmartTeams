@@ -3,7 +3,7 @@ const sql = require('../utils/database');
 
 class Feedback {
     constructor(/* Parâmetros como nome_cliente, operadora, etc. */) {
-        // Inicialize as propriedades com base nos parâmetros
+        // Inicializar as propriedades com base nos parâmetros
     }
 
     save() {

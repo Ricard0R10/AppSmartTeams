@@ -1,12 +1,18 @@
-// routes/feedback.js
 const express = require('express');
 const Feedback = require('../models/feedback');
+const Territorio = require('../models/territorio');
 const router = express.Router();
 
 // Mostrar o formulário de feedback
-router.get('/', (req, res) => {
-    // Aqui, você pode adicionar lógica para enviar dados adicionais para o formulário, se necessário
-    res.render('feedback');
+router.get('/', async (req, res) => {
+    try {
+        // Aqui, você pode buscar e enviar dados adicionais para o formulário, se necessário
+        const celulas = await Territorio.fetchAllDistinctCells(); // Método hipotético para buscar células
+        res.render('feedback', { celulas });
+    } catch (err) {
+        console.error(err);
+        res.send("Erro ao carregar o formulário de feedback.");
+    }
 });
 
 // Processar o formulário de feedback
@@ -52,6 +58,18 @@ router.post('/', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.send("Erro ao enviar feedback.");
+    }
+});
+
+// Buscar moradas por célula
+router.get('/get_moradas', async (req, res) => {
+    const celula = req.query.celula;
+    try {
+        const moradas = await Territorio.findByCell(celula);
+        res.json(moradas);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Erro ao buscar moradas.');
     }
 });
 

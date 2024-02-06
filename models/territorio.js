@@ -11,6 +11,7 @@ class Territorio {
         this.localidade = localidade;
     }
 
+    
     static fetchAll() {
         return sql.query('SELECT * FROM territorios');
     }

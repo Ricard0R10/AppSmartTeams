@@ -2,6 +2,7 @@ const postgres = require('postgres');
 require('dotenv').config();
 const { Client } = require('pg');
 
+
 const sql = postgres({
   host: process.env.DATABASE_HOST,
   database: process.env.DATABASE_NAME,
@@ -9,5 +10,6 @@ const sql = postgres({
   password: process.env.DATABASE_PASSWORD,
   ssl: { rejectUnauthorized: false },
 });
+
 
 module.exports = sql;
